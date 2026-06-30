@@ -8,6 +8,7 @@ use Controllers\PublicController;
 use Views\Renderer;
 use Dao\Mantenimiento\WcResult as ResultDAO;
 use Utilities\Site;
+use Utilities\Validators;
 
 const LIST_VIEW_URI = "index.php?page=Mnt-ResultList";
 const FORM_VIEW_URI = "index.php?page=Mnt-ResultForm";
@@ -31,6 +32,8 @@ class ResultForm extends PublicController
         "score_b" => 0,
         "fecha" => null
     ];
+    private $errors = [];
+
     /*
     id int NOT NULL PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
     equipo_a VARCHAR(255),
@@ -45,8 +48,8 @@ class ResultForm extends PublicController
     {
         /*
            --> Capturar los query params (mode, id)
-            SI mode != INS 
-                Extraer la información del registro de la db
+           --> SI mode != INS 
+           -->   Extraer la información del registro de la db
             SI es un postback 
                 Validar la data del formulario (POST)
                 SI Validado
@@ -59,7 +62,27 @@ class ResultForm extends PublicController
         */
         try {
             $this->getQueryParams();
-
+            if ($this->isPostBack()) {
+                $validado = $this->validarPostData();
+                if ($validado) {
+                    switch ($this->mode) {
+                        case "INS":
+                            if (ResultDAO::create(
+                                $this->resultado["equipo_a"],
+                                $this->resultado["equipo_b"],
+                                $this->resultado["resumen"],
+                                $this->resultado["score_a"],
+                                $this->resultado["score_b"],
+                                new DateTime()
+                            ) > 0) {
+                                Site::redirectToWithMsg(LIST_VIEW_URI, "Resultado Creado Satisfactoriamente!!!!");
+                            } else {
+                                $this->addViewError("No se pudo insertar nuevo registro");
+                            }
+                            break;
+                    }
+                }
+            }
 
             $this->mostrarVista();
         } catch (Exception $ex) {
@@ -67,6 +90,7 @@ class ResultForm extends PublicController
             Site::redirectToWithMsg(
                 LIST_VIEW_URI,
                 "Algo inesperado occurio, vuelva a intentar. Si el error persiste contacte con el administrador."
+                //$ex->getMessage()
             );
         }
     }
@@ -93,6 +117,37 @@ class ResultForm extends PublicController
         }
     }
 
+    private function validarPostData(): bool
+    {
+        $tmp_mode = $_POST["mode"] ?? 'NAP';
+        if (!isset($this->modes[$tmp_mode])) {
+            throw new Exception("Error modo no es válido");
+        }
+        $equipo_a = $_POST["equipo_a"] ?? '';
+        $equipo_b = $_POST["equipo_b"] ?? '';
+        $resumen = $_POST["resumen"] ?? '';
+        $score_a = intval($_POST["score_a"] ?? '0');
+        $score_b =  intval($_POST["score_b"] ?? '0');
+
+        if (Validators::IsEmpty($equipo_a)) {
+            $this->addViewError("Campo requiere de un valor", "equipo_a");
+        }
+        if (Validators::IsEmpty($equipo_b)) {
+            $this->addViewError("Campo requiere de un valor", "equipo_b");
+        }
+        if (Validators::IsEmpty($resumen)) {
+            $this->addViewError("Campo requiere de un valor", "resumen");
+        }
+
+        $this->resultado["equipo_a"] = $equipo_a;
+        $this->resultado["equipo_b"] = $equipo_b;
+        $this->resultado["resumen"] = $resumen;
+        $this->resultado["score_a"] = $score_a;
+        $this->resultado["score_b"] = $score_b;
+
+
+        return count($this->errors) <= 0;
+    }
 
     private function mostrarVista()
     {
@@ -108,5 +163,10 @@ class ResultForm extends PublicController
         $dataView["resultado"] = $this->resultado;
 
         Renderer::render(FORM_VIEW_TEMPLATE, $dataView);
+    }
+
+    private function addViewError($errormsg, $context = "global")
+    {
+        $this->errors[$context][] = $errormsg;
     }
 }

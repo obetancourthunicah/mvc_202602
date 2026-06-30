@@ -2,33 +2,35 @@
     <h2>{{modeDsc}}</h2>
 </section > 
 <section class="row my-4">
+    {{with resultado}}
     <form 
         class="col-12 col-m-6 offset-m-3 depth-1 px-4 py-4"
-        action="index.php?page=Mnt-Resultform"
+        action="index.php?page=Mnt-Resultform&mode={{~mode}}&id={{id}}"
         method="POST" >
         <div class="row py-2 align-center">
             <label class="col-12 col-m-2 px-1">Equipo:</label>
-            <input type="text" name="equipo_a" required class="col-12 col-m-6">
+            <input type="text" name="equipo_a" required class="col-12 col-m-6" value="{{equipo_a}}">
             <label class="col-12 col-m-2 px-4">Score:</label>
-            <input type="number" name="score_a" required class="col-12 col-m-2">
+            <input type="number" name="score_a" required class="col-12 col-m-2" value="{{score_a}}">
         </div>
         <div class="row py-2 align-center">
             <label class="col-12 col-m-2 px-1">Equipo:</label>
-            <input type="text" name="equipo_b" required class="col-12 col-m-6">
+            <input type="text" name="equipo_b" required class="col-12 col-m-6" value="{{equipo_b}}">
             <label class="col-12 col-m-2 px-4">Score:</label>
-            <input type="number" name="score_b" required class="col-12 col-m-2">
+            <input type="number" name="score_b" required class="col-12 col-m-2" value="{{score_b}}">
         </div>
         <div class="row py-2 align-center">
             <label class="col-12 col-m-2 px-1">Resumen:</label>
-            <input type="text" name="resumen" required class="col-12 col-m-12">
+            <textarea name="resumen" required class="col-12 col-m-12">{{resumen}}</textarea>
         </div>
         <div class="row py-2 align-center my-2 flex-end">
             <input type="hidden" name="id" value="{{id}}">
-            <input type="hidden" name="mode" value="{{mode}}">
+            <input type="hidden" name="mode" value="{{~mode}}">
             <button type="submit" name="btnGuardar">Guardar</button>
             <button type="button" id="returnBtn" class="mx-4">Cancelar</button>
         </div>
     </form>
+    {{endwith resultado}}
 </section>
 <script>
     document.addEventListener("DOMContentLoaded", ()=>{

@@ -55,7 +55,7 @@ class WcResult extends Table
             "resumen" => $resumen,
             "score_a" => $score_a,
             "score_b" => $score_b,
-            "fecha" => $fecha
+            "fecha" => $fecha->format('Y-m-d')
         ];
 
         return self::executeNonQuery($sqlIns, $param);
@@ -82,7 +82,7 @@ class WcResult extends Table
             "resumen" => $resumen,
             "score_a" => $score_a,
             "score_b" => $score_b,
-            "fecha" => $fecha,
+            "fecha" => $fecha->format('Y-m-d'),
             "id" => $id
         ];
 
