@@ -50,12 +50,12 @@ class ResultForm extends PublicController
            --> Capturar los query params (mode, id)
            --> SI mode != INS 
            -->   Extraer la información del registro de la db
-            SI es un postback 
-                Validar la data del formulario (POST)
-                SI Validado
-                    Realizar el INS UPD DEL en la DB
-                    Redirijir al listado despues de mostrar el mensaje
-                SINO
+           --> SI es un postback 
+           -->     Validar la data del formulario (POST)
+           -->     SI Validado
+           -->         Realizar el INS UPD DEL en la DB
+           -->         Redirijir al listado despues de mostrar el mensaje
+           -->     SINO
                     Mostrar el error en el formulario para corregir.
             --> Prepara los datos de la vista
             --> Renderizar la vista
@@ -65,22 +65,7 @@ class ResultForm extends PublicController
             if ($this->isPostBack()) {
                 $validado = $this->validarPostData();
                 if ($validado) {
-                    switch ($this->mode) {
-                        case "INS":
-                            if (ResultDAO::create(
-                                $this->resultado["equipo_a"],
-                                $this->resultado["equipo_b"],
-                                $this->resultado["resumen"],
-                                $this->resultado["score_a"],
-                                $this->resultado["score_b"],
-                                new DateTime()
-                            ) > 0) {
-                                Site::redirectToWithMsg(LIST_VIEW_URI, "Resultado Creado Satisfactoriamente!!!!");
-                            } else {
-                                $this->addViewError("No se pudo insertar nuevo registro");
-                            }
-                            break;
-                    }
+                    $this->procesarPost();
                 }
             }
 
@@ -149,6 +134,50 @@ class ResultForm extends PublicController
         return count($this->errors) <= 0;
     }
 
+    private function procesarPost(): void
+    {
+        switch ($this->mode) {
+            case "INS":
+                if (ResultDAO::create(
+                    $this->resultado["equipo_a"],
+                    $this->resultado["equipo_b"],
+                    $this->resultado["resumen"],
+                    $this->resultado["score_a"],
+                    $this->resultado["score_b"],
+                    new DateTime()
+                ) > 0) {
+                    Site::redirectToWithMsg(LIST_VIEW_URI, "Resultado Creado Satisfactoriamente!!!!");
+                } else {
+                    $this->addViewError("No se pudo insertar nuevo registro");
+                }
+                break;
+            case "UPD":
+                if (ResultDAO::update(
+                    $this->resultado["id"],
+                    $this->resultado["equipo_a"],
+                    $this->resultado["equipo_b"],
+                    $this->resultado["resumen"],
+                    $this->resultado["score_a"],
+                    $this->resultado["score_b"],
+                    new DateTime()
+                ) > 0) {
+                    Site::redirectToWithMsg(LIST_VIEW_URI, "Resultado Actualizado Satisfactoriamente!!!!");
+                } else {
+                    $this->addViewError("No se actualizó registro");
+                }
+                break;
+            case "DEL":
+                if (ResultDAO::delete(
+                    $this->resultado["id"]
+                ) > 0) {
+                    Site::redirectToWithMsg(LIST_VIEW_URI, "Resultado Eliminado Satisfactoriamente!!!!");
+                } else {
+                    $this->addViewError("No se eliminó registro");
+                }
+                break;
+        }
+    }
+
     private function mostrarVista()
     {
         $dataView = [];
@@ -162,11 +191,22 @@ class ResultForm extends PublicController
             );
         $dataView["resultado"] = $this->resultado;
 
+        if (count($this->errors)) {
+            foreach ($this->errors as $scope => $errors) {
+                $dataView['error_' . $scope] = $errors;
+            }
+        }
+
+        // $dataView["prevalue"] = json_encode($dataView, JSON_PRETTY_PRINT);
         Renderer::render(FORM_VIEW_TEMPLATE, $dataView);
     }
 
     private function addViewError($errormsg, $context = "global")
     {
-        $this->errors[$context][] = $errormsg;
+        if (isset($this->errors[$context])) {
+            $this->errors[$context][] = $errormsg;
+        } else {
+            $this->errors[$context] = [$errormsg];
+        }
     }
 }

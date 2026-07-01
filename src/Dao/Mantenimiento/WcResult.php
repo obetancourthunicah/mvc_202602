@@ -89,7 +89,7 @@ class WcResult extends Table
         return self::executeNonQuery($sqlUpd, $param);
     }
     // HARD Delete
-    public static function delete(int $id): array
+    public static function delete(int $id)
     {
         $sqlstr = "DELETE FROM wcresults where id=:idwcr;";
         return self::executeNonQuery($sqlstr, ["idwcr" => $id]);
