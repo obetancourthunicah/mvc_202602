@@ -18,9 +18,9 @@
         >
         <div class="row py-2 align-center">
             <label class="col-12 col-m-2 px-1">Equipo:</label>
-            <input type="text" name="equipo_a" required class="col-12 col-m-6" value="{{equipo_a}}">
+            <input type="text" name="equipo_a" required class="col-12 col-m-6" value="{{equipo_a}}" {{~readonly}}>
             <label class="col-12 col-m-2 px-4">Score:</label>
-            <input type="number" name="score_a" required class="col-12 col-m-2" value="{{score_a}}">
+            <input type="number" name="score_a" required class="col-12 col-m-2" value="{{score_a}}" {{~readonly}}>
         </div>
         {{if ~error_equipo_a}}
         <div class="row">
@@ -33,9 +33,9 @@
         {{endif ~error_equipo_a}}
         <div class="row py-2 align-center">
             <label class="col-12 col-m-2 px-1">Equipo:</label>
-            <input type="text" name="equipo_b" required class="col-12 col-m-6" value="{{equipo_b}}">
+            <input type="text" name="equipo_b" required class="col-12 col-m-6" value="{{equipo_b}}" {{~readonly}}>
             <label class="col-12 col-m-2 px-4">Score:</label>
-            <input type="number" name="score_b" required class="col-12 col-m-2" value="{{score_b}}">
+            <input type="number" name="score_b" required class="col-12 col-m-2" value="{{score_b}}" {{~readonly}}>
         </div>
         {{if ~error_equipo_b}}
         <div class="row">
@@ -48,7 +48,7 @@
         {{endif ~error_equipo_b}}
         <div class="row py-2 align-center">
             <label class="col-12 col-m-2 px-1">Resumen:</label>
-            <textarea name="resumen" required class="col-12 col-m-12">{{resumen}}</textarea>
+            <textarea name="resumen" required class="col-12 col-m-12" {{~readonly}}>{{resumen}}</textarea>
         </div>
         {{if ~error_resumen}}
         <div class="row">
@@ -62,7 +62,10 @@
         <div class="row py-2 align-center my-2 flex-end">
             <input type="hidden" name="id" value="{{id}}">
             <input type="hidden" name="mode" value="{{~mode}}">
-            <button type="submit" name="btnGuardar">Guardar</button>
+            <input type="hidden" name="xssToken" value="{{~xssToken}}">
+            {{if ~editable}}
+                <button type="submit" name="btnGuardar">Guardar</button>
+            {{endif ~editable}}
             <button type="button" id="returnBtn" class="mx-4">Cancelar</button>
         </div>
     </form>

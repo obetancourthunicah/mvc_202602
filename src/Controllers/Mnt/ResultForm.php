@@ -13,6 +13,7 @@ use Utilities\Validators;
 const LIST_VIEW_URI = "index.php?page=Mnt-ResultList";
 const FORM_VIEW_URI = "index.php?page=Mnt-ResultForm";
 const FORM_VIEW_TEMPLATE = "mnt/form";
+const FORM_XSS_TOKEN = "result_form";
 
 class ResultForm extends PublicController
 {
@@ -33,6 +34,8 @@ class ResultForm extends PublicController
         "fecha" => null
     ];
     private $errors = [];
+
+    private $xssToken = "";
 
     /*
     id int NOT NULL PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
@@ -108,6 +111,20 @@ class ResultForm extends PublicController
         if (!isset($this->modes[$tmp_mode])) {
             throw new Exception("Error modo no es válido");
         }
+
+        $tmp_xssToken = $_POST["xssToken"] ?? 'NAP';
+        if ($tmp_xssToken === 'NAP') {
+            throw new Exception("No paso la prueba de XSS Script Forgery");
+        }
+        $local_xssToken = $_SESSION[FORM_XSS_TOKEN] ?? 'NAP';
+        if ($local_xssToken === 'NAP') {
+            throw new Exception("No paso la prueba de XSS Script Forgery");
+        }
+
+        if ($local_xssToken !== $tmp_xssToken) {
+            throw new Exception("No paso la prueba de XSS Script Forgery");
+        }
+
         $equipo_a = $_POST["equipo_a"] ?? '';
         $equipo_b = $_POST["equipo_b"] ?? '';
         $resumen = $_POST["resumen"] ?? '';
@@ -197,8 +214,27 @@ class ResultForm extends PublicController
             }
         }
 
+        if (in_array($this->mode, ["DSP", "DEL"])) {
+            $dataView["readonly"] = "readonly";
+        }
+
+        $dataView["editable"] = true;
+        $dataView["editable"] = ($this->mode !== "DSP");
+
+        $dataView["xssToken"] = $this->generarXssToken();
+
+
         // $dataView["prevalue"] = json_encode($dataView, JSON_PRETTY_PRINT);
         Renderer::render(FORM_VIEW_TEMPLATE, $dataView);
+    }
+
+    private function generarXssToken()
+    {
+        $seed = rand(100000, 999999);
+        $dateTime = microtime(true);
+        $toHash = md5("result_form_token_" . $seed . $dateTime);
+        $_SESSION[FORM_XSS_TOKEN] = $toHash;
+        return $toHash;
     }
 
     private function addViewError($errormsg, $context = "global")
